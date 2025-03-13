@@ -10,8 +10,6 @@ def analyze_image(file_path: str, file_type: str):
     """Uploads image to Gemini API and analyzes it."""
     uploaded_file = client.files.upload(file=file_path)
 
-    print(f"Uploaded file URI: {uploaded_file.uri}")
-
     contents = [
         types.Content(
             role="user",
@@ -21,7 +19,7 @@ def analyze_image(file_path: str, file_type: str):
                 ),
                 types.Part.from_uri(
                     file_uri=uploaded_file.uri or "", mime_type=file_type
-                )
+                ),
             ],
         )
     ]
@@ -49,23 +47,12 @@ Return the following JSON structure with precise values:
 {
   \"is_food\": true,
   \"food_name\": \"<Full food name in Thai>\",
-  \"calories\": <integer>,  
-  \"protein\": <integer>,  
-  \"carbohydrates\": <integer>,  
-  \"fat\": <integer>,  
-  \"fiber\": <integer>,  
-  \"sugar\": <integer>  
-}
-Example Output (Food Detected):
-{
-  \"is_food\": true,
-  \"food_name\": \"ข้าวผัดกุ้ง\",
-  \"calories\": 650,
-  \"protein\": 35,
-  \"carbohydrates\": 80,
-  \"fat\": 15,
-  \"fiber\": 4,
-  \"sugar\": 3
+  \"calories\": <integer (grams)>,  
+  \"protein\": <integer (grams)>,  
+  \"carbohydrates\": <integer (grams)>,  
+  \"fat\": <integer (grams)>,  
+  \"fiber\": <integer (grams)>,  
+  \"sugar\": <integer (grams)>  
 }
 
 If the Image Does NOT Contain Food:
@@ -73,11 +60,6 @@ Return the following JSON structure, clearly stating what the image contains:
 {
   \"is_food\": false,
   \"message\": \"<Description of the non-food object>\"
-}
-Example Output (No Food Detected):
-{
-  \"is_food\": false,
-  \"message\": \"This image is of a dog, not food.\"
 }
 
 Strict Rules:
