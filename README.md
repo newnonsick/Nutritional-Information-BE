@@ -24,6 +24,7 @@ This project provides an API to analyze food images and return nutritional infor
 │   │       ├── __init__.py
 │   │       └── gemini.py
 ├── core/
+│   ├── __init__.py
 │   ├── config.py
 │   ├── logging.py
 │   ├── middleware.py
