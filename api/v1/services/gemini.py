@@ -10,7 +10,7 @@ def analyze_image(
     file_path: str, file_type: str, description: str | None = None
 ) -> str:
     """Uploads image to Gemini API and analyzes it."""
-    uploaded_file = client.files.upload(file=file_path)
+    uploaded_file: types.File = client.files.upload(file=file_path)
 
     contents = [
         types.Content(
@@ -38,6 +38,9 @@ def analyze_image(
     response = client.models.generate_content(
         model=MODEL_NAME, contents=contents, config=config  # type: ignore
     )
+
+    if uploaded_file.name:
+        client.files.delete(name=uploaded_file.name)
 
     response_text = (
         response.text.strip("```").replace("json", "") if response.text else ""
