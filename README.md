@@ -74,6 +74,7 @@ The API documentation will be available at `http://127.0.0.1:8000/documentation`
 - **Method:** `POST`
 - **Request:**
     - `file`: Upload an image file (JPG, PNG).
+    - `description`: (Optional) A brief description of the image or any additional information you want to provide.
 - **Response:**
     - `is_food`: Boolean indicating if the image contains food.
     - `food_name`: Name of the food in Thai (if food is detected).
