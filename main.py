@@ -1,8 +1,11 @@
 from fastapi import FastAPI
+
 from api.v1.routes import analyze
 from core.middleware import add_middleware
 
-app = FastAPI(title="Food Nutritional Information", version="1.0", docs_url="/documentation")
+app = FastAPI(
+    title="Food Nutritional Information", version="1.0", docs_url="/documentation"
+)
 
 add_middleware(app)
 

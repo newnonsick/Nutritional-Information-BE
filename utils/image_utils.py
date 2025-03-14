@@ -1,12 +1,15 @@
-from fastapi import UploadFile
-from PIL import Image
 from io import BytesIO
 
+from fastapi import UploadFile
+from PIL import Image
 
-@staticmethod
+
 def isImage(file: UploadFile) -> str | None:
     """Check if the uploaded file is a valid image."""
-    if file.content_type is None or file.content_type not in ["image/jpeg", "image/png"]:
+    if file.content_type is None or file.content_type not in [
+        "image/jpeg",
+        "image/png",
+    ]:
         return None
     try:
         file.file.seek(0)

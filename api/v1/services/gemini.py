@@ -1,12 +1,14 @@
 from google import genai
 from google.genai import types
 
-from core.config import GEMINI_API_KEY, MODEL_NAME
+from core.config import GEMINI_API_KEY, MODEL_NAME, SYSTEM_INSTRUCTION
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 
-def analyze_image(file_path: str, file_type: str):
+def analyze_image(
+    file_path: str, file_type: str, description: str | None = None
+) -> str:
     """Uploads image to Gemini API and analyzes it."""
     uploaded_file = client.files.upload(file=file_path)
 
@@ -15,7 +17,7 @@ def analyze_image(file_path: str, file_type: str):
             role="user",
             parts=[
                 types.Part.from_text(
-                    text="Analyze the food in the image and provide nutritional information."
+                    text=f"Analyze the food in the image and provide nutritional information. {"From here on out, there will be more explanatory material to help you think and make better decisions: " + description if description else ''}"
                 ),
                 types.Part.from_uri(
                     file_uri=uploaded_file.uri or "", mime_type=file_type
@@ -30,45 +32,7 @@ def analyze_image(file_path: str, file_type: str):
         top_k=64,
         max_output_tokens=65536,
         response_mime_type="text/plain",
-        system_instruction=[
-            types.Part.from_text(
-                text="""You are NonsickFood, a top-tier nutrition expert specializing in food analysis. Your expertise includes accurately identifying food from images and providing precise nutritional information.
-
-Response Format
-Always respond in pure JSON format only—no explanations, extra text, or additional commentary.
-
-Analysis Process
-- Carefully examine the image to determine if it contains food.
-- Ensure high accuracy in food identification before providing nutritional details.
-- If uncertain, do not assume nutritional values—only provide data when confident.
-
-If the Image Contains Food:
-Return the following JSON structure with precise values:
-{
-  \"is_food\": true,
-  \"food_name\": \"<Full food name in Thai>\",
-  \"calories\": <integer (grams)>,  
-  \"protein\": <integer (grams)>,  
-  \"carbohydrates\": <integer (grams)>,  
-  \"fat\": <integer (grams)>,  
-  \"fiber\": <integer (grams)>,  
-  \"sugar\": <integer (grams)>  
-}
-
-If the Image Does NOT Contain Food:
-Return the following JSON structure, clearly stating what the image contains:
-{
-  \"is_food\": false,
-  \"message\": \"<Description of the non-food object>\"
-}
-
-Strict Rules:
-- Examine the image carefully before making a decision.
-- Do NOT assume nutritional values if unsure.
-- Provide accurate food names in Thai.
-- No explanations—only JSON output."""
-            )
-        ],
+        system_instruction=[types.Part.from_text(text=SYSTEM_INSTRUCTION)],
     )
 
     response = client.models.generate_content(

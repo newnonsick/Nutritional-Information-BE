@@ -1,10 +1,12 @@
 import time
+
+from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-from fastapi import Request
-from core.logging import logger
 from starlette.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from starlette.responses import JSONResponse
+
+from core.logging import logger
+
 
 class CustomMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -27,7 +29,6 @@ class CustomMiddleware(BaseHTTPMiddleware):
         logger.info(f"Request processed in: {process_time:.4f} seconds")
 
         response.headers["X-Processing-Time"] = str(process_time)
-        response.headers["X-Custom-Header"] = "MyCustomValue"
 
         return response
 
