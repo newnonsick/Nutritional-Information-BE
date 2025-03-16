@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         super().__init__()
 
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
-    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     MODEL_NAME: str = (
         "gemini-2.0-flash-lite"  # gemini-2.0-flash-lite # gemini-2.0-flash-thinking-exp-01-21

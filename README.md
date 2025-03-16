@@ -21,13 +21,15 @@ This project provides an API to analyze food images and return nutritional infor
 │   │   ├── routes/
 │   │   │   ├── __init__.py
 │   │   │   ├── analyze.py
-│   │   │   └── auth.py
+│   │   │   ├── auth.py
+│   │   │   └── user.py
 │   │   ├── schemas/
 │   │   │   ├── __init__.py
 │   │   │   ├── analyze.py
-│   │   │   └── auth.py
-│   │   ├── services/
+│   │   │   ├── auth.py
+│   │   └── services/
 │   │       ├── __init__.py
+│   │       ├── analyze_service.py
 │   │       ├── auth_service.py
 │   │       └── gemini_service.py
 ├── core/
@@ -45,8 +47,8 @@ This project provides an API to analyze food images and return nutritional infor
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/newnonsick/Nutritional-Information.git
-    cd nutritional-information
+    git clone https://github.com/newnonsick/Nutritional-Information-BE.git
+    cd nutritional-information-be
     ```
 
 2. Create a virtual environment and activate it:
@@ -64,7 +66,7 @@ This project provides an API to analyze food images and return nutritional infor
     ```env
     GEMINI_API_KEY=your_gemini_api_key
     SUPABASE_URL=your_supabase_url
-    SUPABASE_ANON_KEY=your_supabase_anon_key
+    SUPABASE_KEY=your_supabase_key
     ```
 
 ## Running the Application
@@ -106,7 +108,7 @@ curl -X POST "http://127.0.0.1:8000/api/v1/analyze" -F "file=@path_to_your_image
     - `email`: User's email.
     - `password`: User's password.
 - **Response:**
-    - `message`: Signup success message.
+    - `message`: Signup message.
 
 #### Login
 
@@ -117,6 +119,17 @@ curl -X POST "http://127.0.0.1:8000/api/v1/analyze" -F "file=@path_to_your_image
     - `password`: User's password.
 - **Response:**
     - `access_token`: JWT token for authentication.
+    - `refresh_token`: token for refresh JWT token.
+
+#### Refresh Token
+
+- **URL:** `/api/v1/refresh-token`
+- **Method:** `POST`
+- **Request:**
+    - `refresh_token`: User's refresh token.
+- **Response:**
+    - `access_token`: New JWT token for authentication.
+    - `refresh_token`: token for refresh JWT token.
 
 ## License
 
