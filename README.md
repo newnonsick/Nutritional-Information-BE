@@ -65,6 +65,7 @@ This project provides an API to analyze food images and return nutritional infor
 4. Create a `.env` file in the root directory and add your Gemini API key and Supabase credentials:
     ```env
     GEMINI_API_KEY=your_gemini_api_key
+    MODEL_NAME=gemini_model_name
     SUPABASE_URL=your_supabase_url
     SUPABASE_KEY=your_supabase_key
     ```

@@ -6,16 +6,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     def __init__(self):
-        print("Loading environment variables...")
         load_dotenv()
         super().__init__()
 
-    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
-    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    MODEL_NAME: str = (
-        "gemini-2.0-flash-lite"  # gemini-2.0-flash-lite # gemini-2.0-flash-thinking-exp-01-21
-    )
+    SUPABASE_URL: str | None = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY: str | None = os.getenv("SUPABASE_KEY")
+    GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
+    MODEL_NAME: str = os.getenv(
+        "MODEL_NAME", "gemini-2.0-flash"
+    )  # gemini-2.0-flash-lite # gemini-2.0-flash-thinking-exp-01-21 #gemini-2.0-flash
     SYSTEM_INSTRUCTION: str = """You are NonsickFood, a top-tier nutrition expert specializing in food analysis. Your expertise includes accurately identifying food from images and providing precise nutritional information.
 
     Response Format
