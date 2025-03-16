@@ -1,47 +1,22 @@
-import json
-import os
-import shutil
-import tempfile
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, File, Form, UploadFile
+from supabase import Client
 
+from api.dependencies import get_current_user
 from api.v1.schemas.analyze import AnalyzeResponse
-from api.v1.services.gemini import analyze_image
-from utils.image_utils import isImage
+from api.v1.services.analyze_service import process_food_analysis
+from core.supabase import get_supabase_client
 
 router = APIRouter()
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_food(
-    description: Optional[str] = Form(None), file: UploadFile = File(...)
+    current_user: dict = Depends(get_current_user),
+    supabase_client: Client = Depends(get_supabase_client),
+    description: Optional[str] = Form(None),
+    file: UploadFile = File(...),
 ):
     """Endpoint to analyze food image."""
-    imageType = isImage(file)
-    if not imageType:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid image file. Please upload a valid image (JPG, PNG).",
-        )
-
-    try:
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".jpg" if imageType == "image/jpeg" else ".png"
-        ) as temp_file:
-            shutil.copyfileobj(file.file, temp_file)
-            temp_file_path = temp_file.name
-
-        if not os.path.exists(temp_file_path):
-            raise HTTPException(status_code=500, detail="Error saving the image.")
-
-        response_json = analyze_image(temp_file_path, imageType, description)
-        response_dict = json.loads(response_json)
-
-        os.remove(temp_file_path)
-
-        return response_dict
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await process_food_analysis(file, description, current_user, supabase_client)

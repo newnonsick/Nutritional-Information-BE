@@ -8,26 +8,34 @@ This project provides an API to analyze food images and return nutritional infor
 .
 ├── .env
 ├── .gitignore
+├── LICENSE
 ├── main.py
+├── README.md
 ├── requirements.txt
 ├── api/
 │   ├── __init__.py
+│   ├── dependencies.py
+│   ├── exceptions.py
 │   ├── v1/
 │   │   ├── __init__.py
 │   │   ├── routes/
 │   │   │   ├── __init__.py
-│   │   │   └── analyze.py
+│   │   │   ├── analyze.py
+│   │   │   └── auth.py
 │   │   ├── schemas/
 │   │   │   ├── __init__.py
-│   │   │   └── analyze.py
-│   │   └── services/
+│   │   │   ├── analyze.py
+│   │   │   └── auth.py
+│   │   ├── services/
 │   │       ├── __init__.py
-│   │       └── gemini.py
+│   │       ├── auth_service.py
+│   │       └── gemini_service.py
 ├── core/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── logging.py
 │   ├── middleware.py
+│   ├── supabase.py
 ├── utils/
 │   ├── __init__.py
 │   └── image_utils.py
@@ -52,9 +60,11 @@ This project provides an API to analyze food images and return nutritional infor
     pip install -r requirements.txt
     ```
 
-4. Create a `.env` file in the root directory and add your Gemini API key:
+4. Create a `.env` file in the root directory and add your Gemini API key and Supabase credentials:
     ```env
     GEMINI_API_KEY=your_gemini_api_key
+    SUPABASE_URL=your_supabase_url
+    SUPABASE_ANON_KEY=your_supabase_anon_key
     ```
 
 ## Running the Application
@@ -85,6 +95,28 @@ Example request using `curl`:
 ```sh
 curl -X POST "http://127.0.0.1:8000/api/v1/analyze" -F "file=@path_to_your_image.jpg"
 ```
+
+### User Authentication
+
+#### Signup
+
+- **URL:** `/api/v1/signup`
+- **Method:** `POST`
+- **Request:**
+    - `email`: User's email.
+    - `password`: User's password.
+- **Response:**
+    - `message`: Signup success message.
+
+#### Login
+
+- **URL:** `/api/v1/login`
+- **Method:** `POST`
+- **Request:**
+    - `email`: User's email.
+    - `password`: User's password.
+- **Response:**
+    - `access_token`: JWT token for authentication.
 
 ## License
 

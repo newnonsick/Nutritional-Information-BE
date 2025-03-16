@@ -1,9 +1,9 @@
 from google import genai
 from google.genai import types
 
-from core.config import GEMINI_API_KEY, MODEL_NAME, SYSTEM_INSTRUCTION
+from core.config import settings
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 
 def analyze_image(
@@ -32,11 +32,11 @@ def analyze_image(
         top_k=64,
         max_output_tokens=65536,
         response_mime_type="text/plain",
-        system_instruction=[types.Part.from_text(text=SYSTEM_INSTRUCTION)],
+        system_instruction=[types.Part.from_text(text=settings.SYSTEM_INSTRUCTION)],
     )
 
     response = client.models.generate_content(
-        model=MODEL_NAME, contents=contents, config=config  # type: ignore
+        model=settings.MODEL_NAME, contents=contents, config=config  # type: ignore
     )
 
     if uploaded_file.name:

@@ -4,3 +4,8 @@ python-dotenv
 pillow
 google-genai
 python-multipart
+pydantic
+pydantic-settings
+pydantic[email]
+supabase
+pytz
