@@ -10,12 +10,19 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class UserRefreshToken(BaseModel):
+    refresh_token: str
+
+
 class SignupResponse(BaseModel):
     message: str
 
-class Token(BaseModel):
+
+class LoginResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
+
 
 class N(BaseModel):
     message: str

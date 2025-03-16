@@ -1,7 +1,6 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
-from api.dependencies import get_current_user
-from api.v1.routes import analyze, auth
+from api.v1.routes import analyze, auth, user
 from core.middleware import add_middleware
 
 app = FastAPI(
@@ -18,6 +17,7 @@ app.include_router(
     tags=["Food Analysis"],
 )
 app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
+app.include_router(user.router, prefix="/api/v1", tags=["User"])
 
 
 @app.get("/health", tags=["Health Check"])

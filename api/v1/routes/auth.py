@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from supabase import Client
 
 from api.exceptions import (
@@ -38,7 +37,7 @@ async def signup_email_password(
         )
 
 
-@router.post("/login", response_model=auth_schemas.Token)
+@router.post("/login", response_model=auth_schemas.LoginResponse)
 async def login_email_password(
     form_data: auth_schemas.UserLogin,
     supabase_client: Client = Depends(get_supabase_client),
@@ -56,4 +55,23 @@ async def login_email_password(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Login failed: {e}",
+        )
+
+
+@router.post("refresh-token", response_model=auth_schemas.LoginResponse)
+async def refresh_token(
+    form_data: auth_schemas.UserRefreshToken = Depends(),
+    supabase_client: Client = Depends(get_supabase_client),
+):
+    try:
+        token_data = await auth_service.refresh_token(
+            supabase_client, form_data.refresh_token
+        )
+        return token_data
+    except InvalidCredentialsException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Token refresh failed: {e}",
         )

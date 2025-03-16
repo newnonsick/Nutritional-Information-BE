@@ -39,7 +39,7 @@ async def signup_with_email_password(
 
 async def login_with_email_password(
     supabase_client: Client, email: str, password: str
-) -> auth_schemas.Token:
+) -> auth_schemas.LoginResponse:
     """
     Logs in a user with email and password using Supabase Auth.
     """
@@ -48,11 +48,32 @@ async def login_with_email_password(
             {"email": email, "password": password}
         )
         if response.session:
-            return auth_schemas.Token(access_token=response.session.access_token)
+            return auth_schemas.LoginResponse(
+                access_token=response.session.access_token,
+                refresh_token=response.session.refresh_token,
+            )
         else:
-            print(1)
             raise InvalidCredentialsException()
     except Exception as e:
         if str(e) == "Email not confirmed":
             raise EmailNotConfirmedException()
+        raise InvalidCredentialsException()
+
+
+async def refresh_token(
+    supabase_client: Client, refresh_token: str
+) -> auth_schemas.LoginResponse:
+    """
+    Logs in a user with email and password using Supabase Auth.
+    """
+    try:
+        response = supabase_client.auth.refresh_session(refresh_token)
+        if response.session:
+            return auth_schemas.LoginResponse(
+                access_token=response.session.access_token,
+                refresh_token=response.session.refresh_token,
+            )
+        else:
+            raise InvalidCredentialsException()
+    except Exception as e:
         raise InvalidCredentialsException()
