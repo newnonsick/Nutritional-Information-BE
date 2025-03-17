@@ -65,7 +65,7 @@ async def login_email_password(
 
 @router.post("/refresh-token", response_model=auth_schemas.LoginResponse)
 async def refresh_token(
-    form_data: auth_schemas.UserRefreshToken = Depends(),
+    form_data: auth_schemas.UserRefreshToken,
     supabase_client: Client = Depends(get_supabase_client),
 ):
     try:
