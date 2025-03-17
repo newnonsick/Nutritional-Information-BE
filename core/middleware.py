@@ -12,7 +12,7 @@ class CustomMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
 
-        logger.info(f"Incoming request: {request.method} {request.url.path}")
+        logger.info(f"Incoming request: {request.client} {request.method} {request.url.path}")
         logger.debug(f"Request headers: {dict(request.headers)}")
 
         try:

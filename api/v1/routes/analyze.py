@@ -1,6 +1,8 @@
+import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+from gotrue.types import User
 from supabase import Client
 
 from api.dependencies import get_current_user
@@ -13,10 +15,12 @@ router = APIRouter()
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_food(
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     supabase_client: Client = Depends(get_supabase_client),
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
 ):
     """Endpoint to analyze food image."""
-    return await process_food_analysis(file, description, current_user, supabase_client)
+    return await asyncio.to_thread(
+        process_food_analysis, file, current_user, supabase_client, description
+    )

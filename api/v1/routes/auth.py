@@ -31,6 +31,11 @@ async def signup_email_password(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(e),
             )
+        elif "Password should contain" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be 8+ chars with uppercase, lowercase, number & special char.",
+            )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Signup failed: {e}",
