@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from gotrue.types import User
+from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
 from api.dependencies import get_current_user
@@ -98,4 +97,31 @@ async def logout(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Logout failed: {e}",
+        )
+
+
+@router.post("/change-password")
+async def change_password(
+    from_data: auth_schemas.ChangePasswordRequest,
+    supabase_client: Client = Depends(get_supabase_client),
+    current_user: CurrentUserModel = Depends(get_current_user),
+):
+    try:
+        old_password = from_data.old_password
+        new_password = from_data.new_password
+        confirm_password = from_data.confirm_password
+
+        auth_service.change_password(
+            supabase_client,
+            current_user.user,
+            old_password,
+            new_password,
+            confirm_password,
+        )
+        auth_service.logout(supabase_client, current_user.jwt_token)
+        return {"message": "Password changed successfully."}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Password change failed: {e}",
         )

@@ -46,7 +46,9 @@ def process_food_analysis(
 
         if response_dict.get("is_food", False):
             bucket_name = "user-images"
-            unique_filename = f"{user.id}_{uuid4()}.{'jpg' if imageType == 'image/jpeg' else 'png'}"
+            unique_filename = (
+                f"{user.id}_{uuid4()}.{'jpg' if imageType == 'image/jpeg' else 'png'}"
+            )
 
             with open(temp_file_path, "rb") as image_file:
                 supabase_client.storage.from_(bucket_name).upload(

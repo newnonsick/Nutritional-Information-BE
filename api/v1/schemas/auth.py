@@ -24,5 +24,12 @@ class LoginResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 
+
 class LogoutResponse(BaseModel):
     message: str
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+    confirm_password: str

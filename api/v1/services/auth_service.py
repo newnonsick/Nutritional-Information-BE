@@ -4,6 +4,8 @@ from supabase import Client
 from api.exceptions import (
     EmailNotConfirmedException,
     InvalidCredentialsException,
+    NewPasswordsDoNotMatchException,
+    OldPasswordIncorrectException,
     UserAlreadyExistsException,
 )
 from api.v1.schemas import auth as auth_schemas
@@ -67,6 +69,15 @@ def refresh_token(
     Logs in a user with email and password using Supabase Auth.
     """
     try:
+        userSession = supabase_client.auth.get_session()
+        if not userSession:
+            raise InvalidCredentialsException()
+
+        userRefreshToken = userSession.refresh_token
+
+        if userRefreshToken != refresh_token:
+            raise InvalidCredentialsException()
+
         response = supabase_client.auth.refresh_session(refresh_token)
         if response.session:
             return auth_schemas.LoginResponse(
@@ -79,13 +90,37 @@ def refresh_token(
         raise InvalidCredentialsException()
 
 
-def logout(
-    supabase_client: Client, jwt_token: str
-) -> None:
+def logout(supabase_client: Client, jwt_token: str) -> None:
     """
     Logs out a user using Supabase Auth.
     """
     try:
         supabase_client.auth.admin.sign_out(jwt_token)
+    except Exception as e:
+        raise e
+
+
+def change_password(
+    supabase_client: Client,
+    user: User,
+    old_password: str,
+    new_password: str,
+    confirm_password: str,
+) -> None:
+    """
+    Changes the password of a user using Supabase Auth.
+    """
+    # Verify old password
+    try:
+        login_with_email_password(supabase_client, user.email or "", old_password)
+    except InvalidCredentialsException:
+        raise OldPasswordIncorrectException()
+
+    # Check if new passwords match
+    if new_password != confirm_password:
+        raise NewPasswordsDoNotMatchException()
+
+    try:
+        supabase_client.auth.update_user({"password": new_password})
     except Exception as e:
         raise e

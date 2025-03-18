@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from gotrue.types import User
 
 from api.dependencies import get_current_user
 from api.v1.models.user_model import CurrentUserModel

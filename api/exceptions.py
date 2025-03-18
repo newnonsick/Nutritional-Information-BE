@@ -17,7 +17,17 @@ class UserAlreadyExistsException(CustomAPIException):
     def __init__(self, detail="User with this email already exists"):
         super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
+
 class EmailNotConfirmedException(CustomAPIException):
     def __init__(self, detail="Please confirm your email"):
         super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
+
+class NewPasswordsDoNotMatchException(CustomAPIException):
+    def __init__(self, detail="New password and confirm password do not match"):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
+
+class OldPasswordIncorrectException(CustomAPIException):
+    def __init__(self, detail="Old password is incorrect"):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
