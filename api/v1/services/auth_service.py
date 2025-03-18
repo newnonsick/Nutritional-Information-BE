@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from gotrue.types import User
 from supabase import Client
 
 from api.exceptions import (
@@ -9,7 +9,7 @@ from api.exceptions import (
 from api.v1.schemas import auth as auth_schemas
 
 
-async def signup_with_email_password(
+def signup_with_email_password(
     supabase_client: Client, user_create: auth_schemas.UserCreate
 ) -> auth_schemas.SignupResponse:
     """
@@ -37,7 +37,7 @@ async def signup_with_email_password(
             raise
 
 
-async def login_with_email_password(
+def login_with_email_password(
     supabase_client: Client, email: str, password: str
 ) -> auth_schemas.LoginResponse:
     """
@@ -60,7 +60,7 @@ async def login_with_email_password(
         raise InvalidCredentialsException()
 
 
-async def refresh_token(
+def refresh_token(
     supabase_client: Client, refresh_token: str
 ) -> auth_schemas.LoginResponse:
     """
@@ -77,3 +77,15 @@ async def refresh_token(
             raise InvalidCredentialsException()
     except Exception as e:
         raise InvalidCredentialsException()
+
+
+def logout(
+    supabase_client: Client, jwt_token: str
+) -> None:
+    """
+    Logs out a user using Supabase Auth.
+    """
+    try:
+        supabase_client.auth.admin.sign_out(jwt_token)
+    except Exception as e:
+        raise e

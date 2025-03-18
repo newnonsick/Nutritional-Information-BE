@@ -18,7 +18,7 @@ from utils.image_utils import isImage
 
 def process_food_analysis(
     file: UploadFile,
-    current_user: User,
+    user: User,
     supabase_client: Client,
     description: Optional[str] = None,
 ) -> AnalyzeResponse:
@@ -46,7 +46,7 @@ def process_food_analysis(
 
         if response_dict.get("is_food", False):
             bucket_name = "user-images"
-            unique_filename = f"{current_user.id}_{uuid4()}.{'jpg' if imageType == 'image/jpeg' else 'png'}"
+            unique_filename = f"{user.id}_{uuid4()}.{'jpg' if imageType == 'image/jpeg' else 'png'}"
 
             with open(temp_file_path, "rb") as image_file:
                 supabase_client.storage.from_(bucket_name).upload(
@@ -61,7 +61,7 @@ def process_food_analysis(
             current_time_utc = datetime.now(utc_tz).isoformat()
 
             data = {
-                "user_id": current_user.id,
+                "user_id": user.id,
                 "image_url": public_url,
                 "food_name": response_dict.get("food_name"),
                 "calories": response_dict.get("calories"),

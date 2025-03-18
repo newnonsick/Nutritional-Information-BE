@@ -1,7 +1,8 @@
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from supabase import Client
 
+from api.v1.models.user_model import CurrentUserModel
 from core.supabase import get_supabase_client
 
 security = HTTPBearer()
@@ -10,7 +11,7 @@ security = HTTPBearer()
 async def get_current_user(
     supabase_client: Client = Depends(get_supabase_client),
     authorization: HTTPAuthorizationCredentials = Depends(security),
-):
+) -> CurrentUserModel:
     """
     Dependency to get the current user from a JWT token.
     This verifies the JWT provided in the Authorization header against Supabase.
@@ -29,7 +30,8 @@ async def get_current_user(
 
         if not user or not user.user:
             raise credentials_exception
-        return user.user
+
+        return CurrentUserModel(user=user.user, jwt_token=token)
 
     except Exception as e:
         raise credentials_exception

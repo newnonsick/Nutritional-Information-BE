@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from gotrue.types import User
 from supabase import Client
 
+from api.dependencies import get_current_user
 from api.exceptions import (
     EmailNotConfirmedException,
     InvalidCredentialsException,
     UserAlreadyExistsException,
 )
+from api.v1.models.user_model import CurrentUserModel
 from api.v1.schemas import auth as auth_schemas
 from api.v1.services import auth_service
 from core.supabase import get_supabase_client
@@ -19,7 +22,7 @@ async def signup_email_password(
     supabase_client: Client = Depends(get_supabase_client),
 ):
     try:
-        token_data = await auth_service.signup_with_email_password(
+        token_data = auth_service.signup_with_email_password(
             supabase_client, user_create
         )
         return token_data
@@ -48,7 +51,7 @@ async def login_email_password(
     supabase_client: Client = Depends(get_supabase_client),
 ):
     try:
-        token_data = await auth_service.login_with_email_password(
+        token_data = auth_service.login_with_email_password(
             supabase_client, form_data.email, form_data.password
         )
         return token_data
@@ -67,9 +70,10 @@ async def login_email_password(
 async def refresh_token(
     form_data: auth_schemas.UserRefreshToken,
     supabase_client: Client = Depends(get_supabase_client),
+    current_user: CurrentUserModel = Depends(get_current_user),
 ):
     try:
-        token_data = await auth_service.refresh_token(
+        token_data = auth_service.refresh_token(
             supabase_client, form_data.refresh_token
         )
         return token_data
@@ -79,4 +83,19 @@ async def refresh_token(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Token refresh failed: {e}",
+        )
+
+
+@router.post("/logout", response_model=auth_schemas.LogoutResponse)
+async def logout(
+    supabase_client: Client = Depends(get_supabase_client),
+    current_user: CurrentUserModel = Depends(get_current_user),
+):
+    try:
+        auth_service.logout(supabase_client, current_user.jwt_token)
+        return auth_schemas.LogoutResponse(message="Logged out successfully.")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Logout failed: {e}",
         )
