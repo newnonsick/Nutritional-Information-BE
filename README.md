@@ -77,9 +77,11 @@ To run the FastAPI application, use the following command:
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The API documentation will be available at `http://127.0.0.1:8000/documentation`.
+The API documentation will be available at `http://localhost:8000/documentation`.
 
 ## API Endpoints
+
+For a detailed list of API endpoints and their usage, please refer to the [API Documentation](http://localhost:8000/documentation).
 
 ### Analyze Food Image
 
@@ -96,7 +98,7 @@ The API documentation will be available at `http://127.0.0.1:8000/documentation`
 
 Example request using `curl`:
 ```sh
-curl -X POST "http://127.0.0.1:8000/api/v1/analyze" -F "file=@path_to_your_image.jpg"
+curl -X POST "http://localhost:8000/api/v1/analyze" -F "file=@path_to_your_image.jpg"
 ```
 
 ### User Authentication
