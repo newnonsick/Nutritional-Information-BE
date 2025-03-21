@@ -1,7 +1,4 @@
 import json
-import os
-import shutil
-import tempfile
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
@@ -13,7 +10,7 @@ from supabase import Client
 
 from api.v1.schemas.analyze import AnalyzeResponse
 from api.v1.services.gemini_service import analyze_image
-from utils.image_utils import isImage
+from utils.image_utils import cleanup_temp_file, isImage, save_temp_file
 
 
 def process_food_analysis(
@@ -24,69 +21,112 @@ def process_food_analysis(
 ) -> AnalyzeResponse:
     """Handles image processing, analysis, and database storage."""
 
-    imageType = isImage(file)
-    if not imageType:
+    image_type = isImage(file)
+    if not image_type:
         raise HTTPException(
             status_code=400,
             detail="Invalid image file. Please upload a valid image (JPG, PNG).",
         )
 
+    temp_file_path = save_temp_file(file, image_type)
+
     try:
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".jpg" if imageType == "image/jpeg" else ".png"
-        ) as temp_file:
-            shutil.copyfileobj(file.file, temp_file)
-            temp_file_path = temp_file.name
-
-        if not os.path.exists(temp_file_path):
-            raise HTTPException(status_code=500, detail="Error saving the image.")
-
-        response_json: str = analyze_image(temp_file_path, imageType, description)
-        response_dict: dict = json.loads(response_json)
+        response_dict = _analyze_image_and_parse_response(
+            temp_file_path, image_type, description
+        )
 
         if response_dict.get("is_food", False):
-            bucket_name = "user-images"
-            unique_filename = (
-                f"{user.id}_{uuid4()}.{'jpg' if imageType == 'image/jpeg' else 'png'}"
+            public_url, data_id = _store_image_and_metadata(
+                temp_file_path, image_type, user, supabase_client, response_dict
             )
+        else:
+            data_id = None
 
-            with open(temp_file_path, "rb") as image_file:
-                supabase_client.storage.from_(bucket_name).upload(
-                    unique_filename, image_file, {"content-type": imageType}
-                )
-
-            public_url = supabase_client.storage.from_(bucket_name).get_public_url(
-                unique_filename
-            )
-
-            utc_tz = timezone("UTC")
-            current_time_utc = datetime.now(utc_tz).isoformat()
-
-            data = {
-                "user_id": user.id,
-                "image_url": public_url,
-                "food_name": response_dict.get("food_name"),
-                "calories": response_dict.get("calories"),
-                "protein": response_dict.get("protein"),
-                "carbohydrates": response_dict.get("carbohydrates"),
-                "fat": response_dict.get("fat"),
-                "fiber": response_dict.get("fiber"),
-                "sugar": response_dict.get("sugar"),
-                "created_at": current_time_utc,
-            }
-
-            response = (
-                supabase_client.table("food_analysis_results").insert(data).execute()
-            )
-
-            # if response.get("status_code") not in [200, 201]:  # type: ignore
-            #     raise HTTPException(
-            #         status_code=500, detail="Failed to save image metadata."
-            #     )
-
-        os.remove(temp_file_path)
-
-        return AnalyzeResponse(**response_dict)
+        return _build_analyze_response(response_dict, data_id)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        cleanup_temp_file(temp_file_path)
+
+
+def _analyze_image_and_parse_response(
+    temp_file_path: str, image_type: str, description: Optional[str]
+) -> dict:
+    """Analyzes the image and parses the response."""
+    response_json = analyze_image(temp_file_path, image_type, description)
+    return json.loads(response_json)
+
+
+def _store_image_and_metadata(
+    temp_file_path: str,
+    image_type: str,
+    user: User,
+    supabase_client: Client,
+    response_dict: dict,
+) -> tuple[str, str]:
+    """Stores the image in the storage bucket and saves metadata in the database."""
+    bucket_name = "user-images"
+    unique_filename = (
+        f"{user.id}_{uuid4()}.{'jpg' if image_type == 'image/jpeg' else 'png'}"
+    )
+
+    with open(temp_file_path, "rb") as image_file:
+        supabase_client.storage.from_(bucket_name).upload(
+            unique_filename, image_file, {"content-type": image_type}
+        )
+
+    public_url = supabase_client.storage.from_(bucket_name).get_public_url(
+        unique_filename
+    )
+
+    data_id = str(uuid4())
+    _save_metadata_to_db(user, supabase_client, public_url, response_dict, data_id)
+
+    return public_url, data_id
+
+
+def _save_metadata_to_db(
+    user: User,
+    supabase_client: Client,
+    public_url: str,
+    response_dict: dict,
+    data_id: str,
+):
+    """Saves the metadata of the analyzed image to the database."""
+    utc_tz = timezone("UTC")
+    current_time_utc = datetime.now(utc_tz).isoformat()
+
+    data = {
+        "id": data_id,
+        "user_id": user.id,
+        "image_url": public_url,
+        "food_name": response_dict.get("food_name"),
+        "calories": response_dict.get("calories"),
+        "protein": response_dict.get("protein"),
+        "carbohydrates": response_dict.get("carbohydrates"),
+        "fat": response_dict.get("fat"),
+        "fiber": response_dict.get("fiber"),
+        "sugar": response_dict.get("sugar"),
+        "created_at": current_time_utc,
+    }
+
+    supabase_client.table("food_analysis_results").insert(data).execute()
+
+
+def _build_analyze_response(
+    response_dict: dict, data_id: Optional[str]
+) -> AnalyzeResponse:
+    """Builds the AnalyzeResponse object."""
+    return AnalyzeResponse(
+        is_food=response_dict.get("is_food", False),
+        id=data_id,
+        food_name=response_dict.get("food_name"),
+        calories=response_dict.get("calories"),
+        protein=response_dict.get("protein"),
+        carbohydrates=response_dict.get("carbohydrates"),
+        fat=response_dict.get("fat"),
+        fiber=response_dict.get("fiber"),
+        sugar=response_dict.get("sugar"),
+    )

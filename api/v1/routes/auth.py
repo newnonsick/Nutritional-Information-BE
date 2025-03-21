@@ -5,6 +5,9 @@ from api.dependencies import get_current_user
 from api.exceptions import (
     EmailNotConfirmedException,
     InvalidCredentialsException,
+    NewPasswordSameAsOldPasswordException,
+    NewPasswordsDoNotMatchException,
+    PasswordRequirementsException,
     UserAlreadyExistsException,
 )
 from api.v1.models.user_model import CurrentUserModel
@@ -13,6 +16,33 @@ from api.v1.services import auth_service
 from core.supabase import get_supabase_client
 
 router = APIRouter()
+
+
+def handle_exception(e: Exception):
+    """Centralized exception handler."""
+    if isinstance(e, UserAlreadyExistsException):
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    if isinstance(e, InvalidCredentialsException):
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    if isinstance(e, EmailNotConfirmedException):
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    if isinstance(e, NewPasswordsDoNotMatchException):
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    if isinstance(e, PasswordRequirementsException):
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    if "is invalid" in str(e).lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    if "Password should contain" in str(e):
+        raise PasswordRequirementsException()
+    if "New password should be different from the old password" in str(e):
+        raise NewPasswordSameAsOldPasswordException()
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail=e,
+    )
 
 
 @router.post("/signup", response_model=auth_schemas.SignupResponse)
@@ -25,23 +55,8 @@ async def signup_email_password(
             supabase_client, user_create
         )
         return token_data
-    except UserAlreadyExistsException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        if "is invalid" in str(e).lower():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(e),
-            )
-        elif "Password should contain" in str(e):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be 8+ chars with uppercase, lowercase, number & special char.",
-            )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Signup failed: {e}",
-        )
+        handle_exception(e)
 
 
 @router.post("/login", response_model=auth_schemas.LoginResponse)
@@ -54,15 +69,8 @@ async def login_email_password(
             supabase_client, form_data.email, form_data.password
         )
         return token_data
-    except InvalidCredentialsException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
-    except EmailNotConfirmedException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Login failed: {e}",
-        )
+        handle_exception(e)
 
 
 @router.post("/refresh-token", response_model=auth_schemas.LoginResponse)
@@ -76,13 +84,8 @@ async def refresh_token(
             supabase_client, form_data.refresh_token
         )
         return token_data
-    except InvalidCredentialsException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Token refresh failed: {e}",
-        )
+        handle_exception(e)
 
 
 @router.post("/logout", response_model=auth_schemas.LogoutResponse)
@@ -94,10 +97,7 @@ async def logout(
         auth_service.logout(supabase_client, current_user.jwt_token)
         return auth_schemas.LogoutResponse(message="Logged out successfully.")
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Logout failed: {e}",
-        )
+        handle_exception(e)
 
 
 @router.post("/change-password")
@@ -118,10 +118,6 @@ async def change_password(
             new_password,
             confirm_password,
         )
-        auth_service.logout(supabase_client, current_user.jwt_token)
         return {"message": "Password changed successfully."}
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Password change failed: {e}",
-        )
+        handle_exception(e)

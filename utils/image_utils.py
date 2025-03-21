@@ -1,6 +1,9 @@
 from io import BytesIO
+import os
+import shutil
+import tempfile
 
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 from PIL import Image
 
 
@@ -19,3 +22,21 @@ def isImage(file: UploadFile) -> str | None:
         return file.content_type
     except Exception:
         return None
+
+
+def save_temp_file(file: UploadFile, image_type: str) -> str:
+    """Saves the uploaded file to a temporary location."""
+    try:
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=".jpg" if image_type == "image/jpeg" else ".png"
+        ) as temp_file:
+            shutil.copyfileobj(file.file, temp_file)
+            return temp_file.name
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving the image: {str(e)}")
+
+
+def cleanup_temp_file(temp_file_path: str):
+    """Removes the temporary file."""
+    if os.path.exists(temp_file_path):
+        os.remove(temp_file_path)

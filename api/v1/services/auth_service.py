@@ -69,15 +69,6 @@ def refresh_token(
     Logs in a user with email and password using Supabase Auth.
     """
     try:
-        userSession = supabase_client.auth.get_session()
-        if not userSession:
-            raise InvalidCredentialsException()
-
-        userRefreshToken = userSession.refresh_token
-
-        if userRefreshToken != refresh_token:
-            raise InvalidCredentialsException()
-
         response = supabase_client.auth.refresh_session(refresh_token)
         if response.session:
             return auth_schemas.LoginResponse(

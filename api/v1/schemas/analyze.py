@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class AnalyzeResponse(BaseModel):
     is_food: bool
+    id: Optional[str] = None
     food_name: Optional[str] = None
     calories: Optional[int] = None
     protein: Optional[int] = None
