@@ -17,7 +17,7 @@ def analyze_image(
             role="user",
             parts=[
                 types.Part.from_text(
-                    text=f"Analyze the food in the image and provide nutritional information. {"From here on out, there will be more explanatory material to help you think and make better decisions: " + description if description else ''}"
+                    text=f"Look at the image provided very carefully and carefully analyze the food in the image and tell the nutritional information. {"From here on out, there will be more explanatory material to help you think and make better decisions: " + description if description else ''}"
                 ),
                 types.Part.from_uri(
                     file_uri=uploaded_file.uri or "", mime_type=file_type

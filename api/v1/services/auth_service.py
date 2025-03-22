@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from gotrue.types import User
 from supabase import Client
 
@@ -6,6 +7,7 @@ from api.exceptions import (
     InvalidCredentialsException,
     NewPasswordsDoNotMatchException,
     OldPasswordIncorrectException,
+    PasswordRequirementsException,
     UserAlreadyExistsException,
 )
 from api.v1.schemas import auth as auth_schemas
@@ -21,7 +23,7 @@ def signup_with_email_password(
         response = supabase_client.auth.sign_up(
             {"email": user_create.email, "password": user_create.password}
         )
-        # print(response)
+
         if response.user:
             if not response.user.user_metadata:
                 raise UserAlreadyExistsException()
@@ -32,11 +34,12 @@ def signup_with_email_password(
 
         else:
             raise Exception("Signup failed, no user returned")
+    except UserAlreadyExistsException:
+        raise UserAlreadyExistsException()
     except Exception as e:
-        if "duplicate key value violates unique constraint" in str(e).lower():
-            raise UserAlreadyExistsException()
-        else:
-            raise
+        if "Password should contain at least one character" in str(e):
+            raise PasswordRequirementsException()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def login_with_email_password(
@@ -113,5 +116,10 @@ def change_password(
 
     try:
         supabase_client.auth.update_user({"password": new_password})
+
+    except OldPasswordIncorrectException:
+        raise OldPasswordIncorrectException()
+    except NewPasswordsDoNotMatchException:
+        raise NewPasswordsDoNotMatchException()
     except Exception as e:
-        raise e
+        raise HTTPException(status_code=500, detail=str(e))

@@ -39,3 +39,7 @@ class PasswordRequirementsException(CustomAPIException):
 class NewPasswordSameAsOldPasswordException(CustomAPIException):
     def __init__(self, detail="New password should be different from the old password"):
         super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
+class NotFoodImageException(CustomAPIException):
+    def __init__(self, detail):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)

@@ -8,6 +8,7 @@ from gotrue.types import User
 from pytz import timezone
 from supabase import Client
 
+from api.exceptions import NotFoodImageException
 from api.v1.schemas.analyze import AnalyzeResponse
 from api.v1.services.gemini_service import analyze_image
 from utils.image_utils import cleanup_temp_file, isImage, save_temp_file
@@ -39,11 +40,19 @@ def process_food_analysis(
             public_url, data_id = _store_image_and_metadata(
                 temp_file_path, image_type, user, supabase_client, response_dict
             )
+
+            return _build_analyze_response(response_dict, data_id)
         else:
-            data_id = None
+            raise NotFoodImageException(
+                detail=response_dict.get(
+                    "message", "Invalid image. Please upload an image of food."
+                ),
+            )
 
-        return _build_analyze_response(response_dict, data_id)
-
+    except NotFoodImageException as e:
+        raise NotFoodImageException(
+            detail=e.detail,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -116,17 +125,16 @@ def _save_metadata_to_db(
 
 
 def _build_analyze_response(
-    response_dict: dict, data_id: Optional[str]
+    response_dict: dict, data_id: str
 ) -> AnalyzeResponse:
     """Builds the AnalyzeResponse object."""
     return AnalyzeResponse(
-        is_food=response_dict.get("is_food", False),
         id=data_id,
-        food_name=response_dict.get("food_name"),
-        calories=response_dict.get("calories"),
-        protein=response_dict.get("protein"),
-        carbohydrates=response_dict.get("carbohydrates"),
-        fat=response_dict.get("fat"),
-        fiber=response_dict.get("fiber"),
-        sugar=response_dict.get("sugar"),
+        food_name=response_dict.get("food_name", ""),
+        calories=response_dict.get("calories", 0),
+        protein=response_dict.get("protein", 0),
+        carbohydrates=response_dict.get("carbohydrates", 0),
+        fat=response_dict.get("fat", 0),
+        fiber=response_dict.get("fiber", 0),
+        sugar=response_dict.get("sugar", 0),
     )

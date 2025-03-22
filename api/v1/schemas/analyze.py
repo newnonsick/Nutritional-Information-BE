@@ -4,13 +4,11 @@ from pydantic import BaseModel
 
 
 class AnalyzeResponse(BaseModel):
-    is_food: bool
-    id: Optional[str] = None
-    food_name: Optional[str] = None
-    calories: Optional[int] = None
-    protein: Optional[int] = None
-    carbohydrates: Optional[int] = None
-    fat: Optional[int] = None
-    fiber: Optional[int] = None
-    sugar: Optional[int] = None
-    message: Optional[str] = None
+    id: str
+    food_name: str
+    calories: int
+    protein: int
+    carbohydrates: int
+    fat: int
+    fiber: int
+    sugar: int
