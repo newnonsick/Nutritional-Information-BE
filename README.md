@@ -18,26 +18,32 @@ This project provides an API to analyze food images and return nutritional infor
 │   ├── exceptions.py
 │   ├── v1/
 │   │   ├── __init__.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── user_model.py
 │   │   ├── routes/
 │   │   │   ├── __init__.py
 │   │   │   ├── analyze.py
 │   │   │   ├── auth.py
+│   │   │   ├── meals.py
 │   │   │   └── user.py
 │   │   ├── schemas/
 │   │   │   ├── __init__.py
 │   │   │   ├── analyze.py
 │   │   │   ├── auth.py
-│   │   └── services/
+│   │   │   └── meals.py
+│   │   ├── services/
 │   │       ├── __init__.py
 │   │       ├── analyze_service.py
 │   │       ├── auth_service.py
-│   │       └── gemini_service.py
+│   │       ├── gemini_service.py
+│   │       └── meals_service.py
 ├── core/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── logging.py
 │   ├── middleware.py
-│   ├── supabase.py
+│   └── supabase.py
 ├── utils/
 │   ├── __init__.py
 │   └── image_utils.py
