@@ -9,9 +9,9 @@ from pytz import timezone
 from supabase import Client
 
 from api.exceptions import NotFoodImageException
-from api.v1.schemas.analyze import AnalyzeResponse
+from api.v1.schemas.meals import MealResponse
 from api.v1.services.gemini_service import analyze_image
-from utils.image_utils import cleanup_temp_file, isImage, save_temp_file
+from utils.image_utils import cleanup_temp_file, isImage, reduce_image_size, save_temp_file
 
 
 def process_food_analysis(
@@ -19,7 +19,7 @@ def process_food_analysis(
     user: User,
     supabase_client: Client,
     description: Optional[str] = None,
-) -> AnalyzeResponse:
+) -> MealResponse:
     """Handles image processing, analysis, and database storage."""
 
     image_type = isImage(file)
@@ -37,11 +37,13 @@ def process_food_analysis(
         )
 
         if response_dict.get("is_food", False):
-            public_url, data_id = _store_image_and_metadata(
+            public_url, data_id, created_at = _store_image_and_metadata(
                 temp_file_path, image_type, user, supabase_client, response_dict
             )
 
-            return _build_analyze_response(response_dict, data_id)
+            return _build_analyze_response(
+                response_dict, data_id, public_url, created_at
+            )
         else:
             raise NotFoodImageException(
                 detail=response_dict.get(
@@ -74,12 +76,14 @@ def _store_image_and_metadata(
     user: User,
     supabase_client: Client,
     response_dict: dict,
-) -> tuple[str, str]:
+) -> tuple[str, str, str]:
     """Stores the image in the storage bucket and saves metadata in the database."""
     bucket_name = "user-images"
     unique_filename = (
         f"{user.id}_{uuid4()}.{'jpg' if image_type == 'image/jpeg' else 'png'}"
     )
+
+    reduce_image_size(temp_file_path)
 
     with open(temp_file_path, "rb") as image_file:
         supabase_client.storage.from_(bucket_name).upload(
@@ -91,9 +95,11 @@ def _store_image_and_metadata(
     )
 
     data_id = str(uuid4())
-    _save_metadata_to_db(user, supabase_client, public_url, response_dict, data_id)
+    current_time_utc = _save_metadata_to_db(
+        user, supabase_client, public_url, response_dict, data_id
+    )
 
-    return public_url, data_id
+    return public_url, data_id, current_time_utc
 
 
 def _save_metadata_to_db(
@@ -102,7 +108,7 @@ def _save_metadata_to_db(
     public_url: str,
     response_dict: dict,
     data_id: str,
-):
+) -> str:
     """Saves the metadata of the analyzed image to the database."""
     utc_tz = timezone("UTC")
     current_time_utc = datetime.now(utc_tz).isoformat()
@@ -123,13 +129,16 @@ def _save_metadata_to_db(
 
     supabase_client.table("food_analysis_results").insert(data).execute()
 
+    return current_time_utc
+
 
 def _build_analyze_response(
-    response_dict: dict, data_id: str
-) -> AnalyzeResponse:
-    """Builds the AnalyzeResponse object."""
-    return AnalyzeResponse(
+    response_dict: dict, data_id: str, image_url: str, created_at: str
+) -> MealResponse:
+    """Builds the MealResponse object."""
+    return MealResponse(
         id=data_id,
+        image_url=image_url,
         food_name=response_dict.get("food_name", ""),
         calories=response_dict.get("calories", 0),
         protein=response_dict.get("protein", 0),
@@ -137,4 +146,5 @@ def _build_analyze_response(
         fat=response_dict.get("fat", 0),
         fiber=response_dict.get("fiber", 0),
         sugar=response_dict.get("sugar", 0),
+        created_at=created_at,
     )

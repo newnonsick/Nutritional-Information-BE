@@ -40,3 +40,12 @@ def cleanup_temp_file(temp_file_path: str):
     """Removes the temporary file."""
     if os.path.exists(temp_file_path):
         os.remove(temp_file_path)
+
+def reduce_image_size(image_path: str, max_size: tuple[int, int] = (512, 512)):
+    """Reduces the image size to the specified dimensions."""
+    try:
+        with Image.open(image_path) as img:
+            img.thumbnail(max_size)
+            img.save(image_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reducing image size: {str(e)}")
