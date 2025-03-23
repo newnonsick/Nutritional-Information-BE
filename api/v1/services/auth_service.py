@@ -29,7 +29,7 @@ def signup_with_email_password(
                 raise UserAlreadyExistsException()
 
             return auth_schemas.SignupResponse(
-                message="Signup successful, please check your email to confirm your account."
+                message="Signup successful"
             )
 
         else:
@@ -60,8 +60,8 @@ def login_with_email_password(
         else:
             raise InvalidCredentialsException()
     except Exception as e:
-        if str(e) == "Email not confirmed":
-            raise EmailNotConfirmedException()
+        # if str(e) == "Email not confirmed":
+        #     raise EmailNotConfirmedException()
         raise InvalidCredentialsException()
 
 
@@ -121,5 +121,14 @@ def change_password(
         raise OldPasswordIncorrectException()
     except NewPasswordsDoNotMatchException:
         raise NewPasswordsDoNotMatchException()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def forgot_password(supabase_client: Client, email: str) -> None:
+    """
+    Sends a password reset email to the user.
+    """
+    try:
+        supabase_client.auth.reset_password_for_email(email)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

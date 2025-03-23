@@ -1,15 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from supabase import Client
 
 from api.dependencies import get_current_user
-from api.exceptions import (
-    EmailNotConfirmedException,
-    InvalidCredentialsException,
-    NewPasswordSameAsOldPasswordException,
-    NewPasswordsDoNotMatchException,
-    PasswordRequirementsException,
-    UserAlreadyExistsException,
-)
 from api.v1.models.user_model import CurrentUserModel
 from api.v1.schemas import auth as auth_schemas
 from api.v1.services import auth_service
@@ -79,3 +71,12 @@ async def change_password(
         confirm_password,
     )
     return {"message": "Password changed successfully."}
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    form_data: auth_schemas.ForgotPasswordRequest,
+    supabase_client: Client = Depends(get_supabase_client),
+):
+    auth_service.forgot_password(supabase_client, form_data.email)
+    return {"message": "Password reset email sent."}
