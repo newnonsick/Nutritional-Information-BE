@@ -67,7 +67,7 @@ This project provides an API to analyze food images and return nutritional infor
     GEMINI_API_KEY=your_gemini_api_key
     MODEL_NAME=gemini_model_name
     SUPABASE_URL=your_supabase_url
-    SUPABASE_KEY=your_supabase_key
+    SUPABASE_KEY=your_supabase_key (service_role)
     ```
 
 ## Running the Application
