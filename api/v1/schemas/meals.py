@@ -4,7 +4,8 @@ from pydantic import BaseModel
 class MealResponse(BaseModel):
     id: str
     image_url: str
-    food_name: str
+    food_name_en: str
+    food_name_th: str
     calories: int
     protein: int
     carbohydrates: int

@@ -28,7 +28,8 @@ def get_meal_by_id(
         return MealResponse(
             id=response_data["id"],
             image_url=response_data["image_url"],
-            food_name=response_data["food_name"],
+            food_name_en=response_data["food_name_en"],
+            food_name_th=response_data["food_name_th"],
             calories=response_data["calories"],
             protein=response_data["protein"],
             carbohydrates=response_data["carbohydrates"],
@@ -81,7 +82,8 @@ def get_meals_by_date(
                 MealResponse(
                     id=meal["id"],
                     image_url=meal["image_url"],
-                    food_name=meal["food_name"],
+                    food_name_en=meal["food_name_en"],
+                    food_name_th=meal["food_name_th"],
                     calories=meal["calories"],
                     protein=meal["protein"],
                     carbohydrates=meal["carbohydrates"],
@@ -117,7 +119,8 @@ def get_all_meals(
                 MealResponse(
                     id=meal["id"],
                     image_url=meal["image_url"],
-                    food_name=meal["food_name"],
+                    food_name_en=meal["food_name_en"],
+                    food_name_th=meal["food_name_th"],
                     calories=meal["calories"],
                     protein=meal["protein"],
                     carbohydrates=meal["carbohydrates"],

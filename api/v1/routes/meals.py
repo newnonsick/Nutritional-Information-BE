@@ -19,7 +19,7 @@ async def get_meal_by_id(
     current_user: CurrentUserModel = Depends(get_current_user),
     supabase_client: Client = Depends(get_supabase_client),
 ):
-    return asyncio.to_thread(
+    return await asyncio.to_thread(
         meals_service.get_meal_by_id, id, current_user.user, supabase_client
     )
 
@@ -32,10 +32,10 @@ async def get_meals_by_date(
 ):
 
     if date:
-        return asyncio.to_thread(
+        return await asyncio.to_thread(
             meals_service.get_meals_by_date, date, current_user.user, supabase_client
         )
 
-    return asyncio.to_thread(
+    return await asyncio.to_thread(
         meals_service.get_all_meals, current_user.user, supabase_client
     )
