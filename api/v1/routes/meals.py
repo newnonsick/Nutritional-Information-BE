@@ -27,13 +27,14 @@ async def get_meal_by_id(
 @router.get("/meals", response_model=ListMealResponse)
 async def get_meals_by_date(
     date: Optional[str] = None,
+    timezone: Optional[str] = None,
     current_user: CurrentUserModel = Depends(get_current_user),
     supabase_client: Client = Depends(get_supabase_client),
 ):
 
-    if date:
+    if date and timezone:
         return await asyncio.to_thread(
-            meals_service.get_meals_by_date, date, current_user.user, supabase_client
+            meals_service.get_meals_by_date, date, timezone, current_user.user, supabase_client
         )
 
     return await asyncio.to_thread(

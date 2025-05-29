@@ -41,7 +41,7 @@ def cleanup_temp_file(temp_file_path: str):
     if os.path.exists(temp_file_path):
         os.remove(temp_file_path)
 
-def reduce_image_size(image_path: str, max_size: tuple[int, int] = (512, 512)):
+def reduce_image_size(image_path: str, max_size: tuple[int, int] = (256, 256)):
     """Reduces the image size to the specified dimensions."""
     try:
         with Image.open(image_path) as img:

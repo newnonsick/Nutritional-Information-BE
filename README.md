@@ -67,8 +67,13 @@ This project provides an API to analyze food images and return nutritional infor
     ```sh
     pip install -r requirements.txt
     ```
+4. **Set up your Supabase database schema:**
 
-4. Create a `.env` file in the root directory and add your Gemini API key and Supabase credentials:
+    - Open the [Supabase SQL Editor](https://app.supabase.com/project/_/sql) for your project.
+    - Copy the contents of [`initial_schema.sql`](initial_schema.sql) and paste them into a new SQL query.
+    - Run the query to create the necessary tables, indexes, and functions.
+
+5. Create a `.env` file in the root directory and add your Gemini API key and Supabase credentials:
     ```env
     GEMINI_API_KEY=your_gemini_api_key
     MODEL_NAME=gemini_model_name
@@ -88,57 +93,6 @@ The API documentation will be available at `http://localhost:8000/documentation`
 ## API Endpoints
 
 For a detailed list of API endpoints and their usage, please refer to the [API Documentation](http://localhost:8000/documentation).
-
-### Analyze Food Image
-
-- **URL:** `/api/v1/analyze`
-- **Method:** `POST`
-- **Request:**
-    - `file`: Upload an image file (JPG, PNG).
-    - `description`: (Optional) A brief description of the image or any additional information you want to provide.
-- **Response:**
-    - `is_food`: Boolean indicating if the image contains food.
-    - `food_name`: Name of the food in Thai (if food is detected).
-    - `calories`, `protein`, `carbohydrates`, `fat`, `fiber`, `sugar`: Nutritional information (if food is detected).
-    - `message`: Description if the image does not contain food.
-
-Example request using `curl`:
-```sh
-curl -X POST "http://localhost:8000/api/v1/analyze" -F "file=@path_to_your_image.jpg"
-```
-
-### User Authentication
-
-#### Signup
-
-- **URL:** `/api/v1/signup`
-- **Method:** `POST`
-- **Request:**
-    - `email`: User's email.
-    - `password`: User's password.
-- **Response:**
-    - `message`: Signup message.
-
-#### Login
-
-- **URL:** `/api/v1/login`
-- **Method:** `POST`
-- **Request:**
-    - `email`: User's email.
-    - `password`: User's password.
-- **Response:**
-    - `access_token`: JWT token for authentication.
-    - `refresh_token`: token for refresh JWT token.
-
-#### Refresh Token
-
-- **URL:** `/api/v1/refresh-token`
-- **Method:** `POST`
-- **Request:**
-    - `refresh_token`: User's refresh token.
-- **Response:**
-    - `access_token`: New JWT token for authentication.
-    - `refresh_token`: token for refresh JWT token.
 
 ## License
 
