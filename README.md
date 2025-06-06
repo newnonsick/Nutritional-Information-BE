@@ -1,4 +1,4 @@
-# Food Nutritional Information API
+# Food Nutritional Information API (NOT DONE YET)
 
 This project provides an API to analyze food images and return nutritional information. It uses FastAPI for the web framework and integrates with the Gemini API for image analysis.
 
